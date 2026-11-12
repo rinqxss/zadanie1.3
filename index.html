@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Калькулятор стоимости доставки</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header>
+    <div class="brand">ExpressCalc 📦</div>
+  </header>
+
+  <main>
+    <section class="card" aria-labelledby="calc-heading">
+      <h1 class="card__title" id="calc-heading">Расчет доставки</h1>
+      <p class="card__subtitle">Укажите параметры посылки, чтобы узнать точную стоимость отправки</p>
+
+      <form id="delivery-form" novalidate>
+        <div class="form-group">
+          <label for="weight">Вес посылки (кг)</label>
+          <input type="number" id="weight" name="weight" placeholder="Например: 2.5" step="0.1" min="0.1" required>
+        </div>
+
+        <div class="form-group">
+          <label for="distance">Расстояние доставки (км)</label>
+          <input type="number" id="distance" name="distance" placeholder="Например: 150" step="1" min="1" required>
+        </div>
+
+        <div class="form-group">
+          <label for="tariff">Тариф отправки</label>
+          <select id="tariff" name="tariff">
+            <option value="1">Стандартный (в пункт выдачи)</option>
+            <option value="1.5">Экспресс-доставка (+50%)</option>
+            <option value="2">Курьером до двери (×2)</option>
+          </select>
+        </div>
+
+        <button type="submit" class="btn">Рассчитать стоимость</button>
+      </form>
+
+      <div id="result-box" class="output" role="status" aria-live="polite"></div>
+    </section>
+  </main>
+
+  <footer>
+    &copy; 2026 ExpressCalc — Быстрый расчет логистики
+  </footer>
+
+  <script>
+    const form = document.getElementById('delivery-form');
+    const weightInput = document.getElementById('weight');
+    const distanceInput = document.getElementById('distance');
+    const tariffSelect = document.getElementById('tariff');
+    const resultBox = document.getElementById('result-box');
+
+    function showError(message) {
+      resultBox.className = 'output output_error';
+      resultBox.textContent = message;
+    }
+
+    function showResult(totalPrice, weight, distance) {
+      resultBox.className = 'output output_success';
+      resultBox.innerHTML = `
+        Итоговая стоимость доставки (${weight} кг на ${distance} км):
+        <span class="output__price">${totalPrice.toLocaleString('ru-RU')} ₽</span>
+      `;
+    }
+
+    form.addEventListener('submit', function (event) {
+      event.preventDefault();
+
+      const rawWeight = weightInput.value.trim();
+      const rawDistance = distanceInput.value.trim();
+
+      if (rawWeight === '' || rawDistance === '') {
+        showError('Пожалуйста, заполните все поля: укажите вес и расстояние.');
+        return;
+      }
+
+      const weight = Number(rawWeight);
+      const distance = Number(rawDistance);
+      const multiplier = Number(tariffSelect.value);
+
+      if (Number.isNaN(weight) || Number.isNaN(distance)) {
+        showError('Введите корректные числовые значения.');
+        return;
+      }
+
+      if (weight <= 0) {
+        showError('Вес посылки должен быть больше нуля.');
+        return;
+      }
+
+      if (distance <= 0) {
+        showError('Расстояние доставки должно быть больше нуля.');
+        return;
+      }
+
+      const baseRate = 150;
+      const weightCost = weight * 45;
+      const distanceCost = distance * 2;
+      const total = Math.round((baseRate + weightCost + distanceCost) * multiplier);
+
+      showResult(total, weight, distance);
+    });
+  </script>
+
+</body>
+</html>
